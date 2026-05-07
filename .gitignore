@@ -1,0 +1,45 @@
+# Dependencies
+/node_modules/
+/vendor/
+
+# Production builds
+/build/
+/dist/
+
+# Testing
+/tests/coverage/
+.phpunit.result.cache
+/tmp/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Runtime
+.cache/
+.tmp/
+
+# Lock files (optional - you may want to commit these)
+composer.lock
+# package-lock.json is committed so CI can use npm cache (cache: 'npm' requires it)
+
+# Build artifacts
+*.zip
+
+# Environment
+.env
+.env.local
+.agents/loop-state/
+
+.aidevops.json
