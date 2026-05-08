@@ -8,8 +8,7 @@
  * Author: David Stone - Multisite Ultimate
  * Author URI: https://multisiteultimate.com
  * Copyright: David Stone, Multisite Ultimate
- * Network: true
- * Requires Plugins: ultimate-multisite, newsletter
+ * Requires Plugins: ultimate-multisite
  * Requires at least: 5.3
  * Tested up to: 6.9
  * Requires PHP: 7.4
