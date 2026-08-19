@@ -10,7 +10,6 @@
  * Copyright: David Stone, Multisite Ultimate
  * Requires Plugins: ultimate-multisite
  * Requires at least: 5.3
- * Tested up to: 6.9
  * Requires PHP: 7.4
  */
 
