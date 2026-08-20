@@ -4,7 +4,7 @@
  * Description: Integrate with The Newsletter Plugin (thenewsletterplugin.com) during checkout to subscribe customers to mailing lists. Designed to be the umbrella addon for self-hosted newsletter providers.
  * Plugin URI: https://multisiteultimate.com
  * Text Domain: ultimate-multisite-newsletter
- * Version: 0.1.0
+ * Version: 0.1.1
  * Author: David Stone - Multisite Ultimate
  * Author URI: https://multisiteultimate.com
  * Copyright: David Stone, Multisite Ultimate
@@ -34,7 +34,7 @@ class Ultimate_Multisite_Newsletter {
 	 *
 	 * @var string
 	 */
-	public $version = '0.1.0';
+	public $version = '0.1.1';
 
 	/**
 	 * Single instance of the class.

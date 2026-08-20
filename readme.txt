@@ -4,7 +4,7 @@ Tags: multisite, newsletter, mailing list
 Requires at least: 5.3
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.0
+Stable tag: 0.1.1
 
 Integrates The Newsletter Plugin with Ultimate Multisite checkout subscriptions.
 
@@ -17,3 +17,9 @@ Subscribes customers to mailing lists during checkout. Requires Ultimate Multisi
 1. Upload the plugin to `/wp-content/plugins/`.
 2. Network activate the plugin.
 3. Activate Ultimate Multisite and The Newsletter Plugin.
+
+== Changelog ==
+
+= 0.1.1 =
+Version 0.1.1 - Released on 2026-08-19
+- Improved: WordPress compatibility metadata now reflects testing through WordPress 7.1.
