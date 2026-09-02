@@ -103,10 +103,12 @@ ultimate-multisite-newsletter/
 ### AI check-in context
 
 AI Newsletter calls `Customer_Snapshot_Provider` directly so another filter
-cannot manufacture consent. The provider returns coarse plan, membership,
-payment-count, network-count, site-count, update, login, and 30-day usage
-signals. It excludes email, URLs, site content, IP addresses, payment amounts,
-and free-form customer data.
+cannot manufacture consent. The provider returns only consent state, a local
+greeting name, and fixed labels for known Ultimate Multisite add-ons that are
+active directly on a customer-owned site. Network-active plugins are ignored
+because platform availability does not prove customer use. The provider
+excludes email, URLs, site content, IP addresses, account activity, membership
+and payment data, and free-form customer data.
 
 Consent is true only when `um_newsletter_check_in_consent` is strictly `true`,
 `1`, or `'1'`, and `um_newsletter_check_in_consent_evidence` is an array with a

@@ -16,6 +16,39 @@ defined('ABSPATH') || exit;
 class Customer_Snapshot_Provider {
 
 	/**
+	 * Fixed labels for add-ons that can be detected as active on customer sites.
+	 *
+	 * Network activation is deliberately ignored because it proves only that an
+	 * add-on is available to the platform, not that a customer uses it.
+	 *
+	 * @var array<string, string>
+	 */
+	private const ADDON_PLUGIN_LABELS = [
+		'ultimate-multisite-admin-page-creator/ultimate-multisite-admin-page-creator.php' => 'Admin Page Creator',
+		'ultimate-multisite-affiliatewp/ultimate-multisite-affiliatewp.php'             => 'AffiliateWP Integration',
+		'ultimate-multisite-captcha/ultimate-multisite-captcha.php'                     => 'Captcha',
+		'ultimate-multisite-content-sync/ultimate-multisite-content-sync.php'           => 'Content Sync',
+		'ultimate-multisite-domain-seller/ultimate-multisite-domain-seller.php'         => 'Domain Seller',
+		'ultimate-multisite-emails/ultimate-multisite-emails.php'                       => 'Emails',
+		'ultimate-multisite-fluent-forms/ultimate-multisite-fluent-forms.php'           => 'Fluent Forms Integration',
+		'ultimate-multisite-gocardless/ultimate-multisite-gocardless.php'               => 'GoCardless Gateway',
+		'ultimate-multisite-language-selector/ultimate-multisite-language-selector.php' => 'Language Selector',
+		'ultimate-multisite-loco-translate/ultimate-multisite-loco-translate.php'       => 'Loco Translate Integration',
+		'ultimate-multisite-mailchimp/ultimate-multisite-mailchimp.php'                 => 'Mailchimp Integration',
+		'ultimate-multisite-mailster/ultimate-multisite-mailster.php'                   => 'Mailster Integration',
+		'ultimate-multisite-metered-plans/ultimate-multisite-metered-plans.php'         => 'Metered Plans',
+		'ultimate-multisite-multi-currency/ultimate-multisite-multi-currency.php'       => 'Multi-Currency',
+		'ultimate-multisite-multi-tenancy/ultimate-multisite-multi-tenancy.php'         => 'Multi-Tenancy',
+		'ultimate-multisite-multinetwork/ultimate-multisite-multinetwork.php'           => 'Multinetwork',
+		'ultimate-multisite-newsletter/ultimate-multisite-newsletter.php'               => 'Newsletter Integration',
+		'ultimate-multisite-plugin-and-theme-manager/ultimate-multisite-plugin-and-theme-manager.php' => 'Plugin & Theme Manager',
+		'ultimate-multisite-support-agents/ultimate-multisite-support-agents.php'       => 'Support Agents',
+		'ultimate-multisite-support-tickets/ultimate-multisite-support-tickets.php'     => 'Support Tickets',
+		'ultimate-multisite-vat/ultimate-multisite-vat.php'                             => 'European VAT',
+		'ultimate-multisite-woocommerce/ultimate-multisite-woocommerce.php'             => 'WooCommerce Integration',
+	];
+
+	/**
 	 * Single instance of the class.
 	 *
 	 * @var Customer_Snapshot_Provider|null
@@ -46,7 +79,8 @@ class Customer_Snapshot_Provider {
 	 * Add an Ultimate Multisite customer snapshot for a Newsletter subscriber.
 	 *
 	 * The returned context deliberately excludes email addresses, site URLs,
-	 * site content, IP addresses, payment amounts, and free-form customer data.
+	 * site content, IP addresses, account activity, membership and payment data,
+	 * and free-form customer data.
 	 *
 	 * @param array  $snapshot   Existing provider snapshot.
 	 * @param object $subscriber Newsletter subscriber row.
@@ -65,80 +99,21 @@ class Customer_Snapshot_Provider {
 			return $snapshot;
 		}
 
-		$memberships = (array) $customer->get_memberships();
-		$sites       = (array) $customer->get_sites();
-		$user        = $customer->get_user();
-
-		$membership_statuses = [];
-		$plan_names           = [];
-		$network_ids          = [];
-		$earliest_membership  = '';
-
-		foreach ($memberships as $membership) {
-			if (! is_object($membership)) {
-				continue;
-			}
-
-			$status = sanitize_key((string) $membership->get_status());
-
-			if ($status) {
-				$membership_statuses[] = $status;
-			}
-
-			$plan = $membership->get_plan();
-
-			if ($plan) {
-				$plan_name = sanitize_text_field((string) $plan->get_name());
-
-				if ($plan_name) {
-					$plan_names[] = $plan_name;
-				}
-			}
-
-			$network_id = absint($membership->get_meta('network_id', 0));
-
-			if ($network_id) {
-				$network_ids[] = $network_id;
-			}
-
-			$date_created = (string) $membership->get_date_created();
-
-			if ($date_created && (! $earliest_membership || strtotime($date_created) < strtotime($earliest_membership))) {
-				$earliest_membership = $date_created;
-			}
-		}
-
-		$customer_network_id = method_exists($customer, 'get_network_id') ? absint($customer->get_network_id()) : 0;
-
-		if ($customer_network_id) {
-			$network_ids[] = $customer_network_id;
-		}
-
-		$last_site_update = '';
-		$visit_total      = 0;
+		$sites         = (array) $customer->get_sites();
+		$user          = $customer->get_user();
+		$active_addons = [];
 
 		foreach ($sites as $site) {
-			if (! is_object($site)) {
+			if (! is_object($site) || ! method_exists($site, 'get_blog_id')) {
 				continue;
 			}
 
-			$date_modified = (string) $site->get_date_modified();
+			foreach ((array) get_blog_option(absint($site->get_blog_id()), 'active_plugins', []) as $plugin_file) {
+				$plugin_file = plugin_basename((string) $plugin_file);
 
-			if ($date_modified && (! $last_site_update || strtotime($date_modified) > strtotime($last_site_update))) {
-				$last_site_update = $date_modified;
-			}
-
-			if (class_exists('\\WP_Ultimo\\Objects\\Visits')) {
-				$visits       = new \WP_Ultimo\Objects\Visits($site->get_blog_id());
-				$visit_total += $visits->get_visit_total('-30 days', 'now');
-			}
-		}
-
-		$completed_payments = 0;
-
-		foreach ((array) $customer->get_payments() as $payment) {
-			if (is_object($payment) && 'completed' === $payment->get_status()) {
-				++$completed_payments;
+				if (isset(self::ADDON_PLUGIN_LABELS[ $plugin_file ])) {
+					$active_addons[] = self::ADDON_PLUGIN_LABELS[ $plugin_file ];
+				}
 			}
 		}
 
@@ -153,20 +128,11 @@ class Customer_Snapshot_Provider {
 			&& $consent_time <= time();
 
 		$snapshot['ultimate_multisite'] = [
-			'customer_found'          => true,
-			'explicit_opt_in'         => $explicit_opt_in,
-			'consent_source'          => $explicit_opt_in ? 'verified_customer_meta' : 'none_recorded',
-			'first_name'              => $user ? sanitize_text_field((string) $user->first_name) : '',
-			'membership_count'        => count($memberships),
-			'membership_statuses'     => array_values(array_unique($membership_statuses)),
-			'plan_names'              => array_values(array_unique($plan_names)),
-			'membership_age_bucket'   => $this->age_bucket($earliest_membership),
-			'completed_payment_count' => $completed_payments,
-			'network_count'           => count(array_unique(array_filter($network_ids))),
-			'site_count'              => count($sites),
-			'last_site_update_bucket' => $this->age_bucket($last_site_update),
-			'last_login_bucket'       => $this->age_bucket((string) $customer->get_last_login(false)),
-			'usage_bucket_30_days'    => $this->usage_bucket($visit_total),
+			'customer_found'  => true,
+			'explicit_opt_in' => $explicit_opt_in,
+			'consent_source'  => $explicit_opt_in ? 'verified_customer_meta' : 'none_recorded',
+			'first_name'      => $user ? sanitize_text_field((string) $user->first_name) : '',
+			'active_addons'   => array_values(array_unique($active_addons)),
 		];
 
 		return $snapshot;
@@ -195,57 +161,4 @@ class Customer_Snapshot_Provider {
 		return $user_id ? wu_get_customer_by_user_id($user_id) : false;
 	}
 
-	/**
-	 * Convert a timestamp into a coarse age bucket.
-	 *
-	 * @param string $date Date understood by strtotime().
-	 * @return string
-	 */
-	private function age_bucket(string $date): string {
-
-		$timestamp = $date ? strtotime($date) : false;
-
-		if (! $timestamp) {
-			return 'unknown';
-		}
-
-		$days = max(0, (int) floor((time() - $timestamp) / DAY_IN_SECONDS));
-
-		if ($days < 30) {
-			return 'under_30_days';
-		}
-
-		if ($days < 90) {
-			return '30_to_89_days';
-		}
-
-		if ($days < 365) {
-			return '90_to_364_days';
-		}
-
-		return 'one_year_or_more';
-	}
-
-	/**
-	 * Convert a 30-day visit count into a coarse usage bucket.
-	 *
-	 * @param int $visits Visit total.
-	 * @return string
-	 */
-	private function usage_bucket(int $visits): string {
-
-		if ($visits <= 0) {
-			return 'none';
-		}
-
-		if ($visits < 100) {
-			return 'light';
-		}
-
-		if ($visits < 1000) {
-			return 'active';
-		}
-
-		return 'high';
-	}
 }
