@@ -112,6 +112,9 @@ class Newsletter_Main {
 		// Initialize Product Integration.
 		Product_Integration::get_instance();
 
+		// Expose privacy-minimized customer context to AI Newsletter.
+		Customer_Snapshot_Provider::get_instance();
+
 		// Subscriber Manager is initialized on-demand.
 	}
 

@@ -105,6 +105,7 @@ class Ultimate_Multisite_Newsletter {
 
 		if (! class_exists('Ultimate_Multisite\Newsletter\Newsletter_Main', false)) {
 			require_once $base . 'class-newsletter-main.php';
+			require_once $base . 'class-customer-snapshot-provider.php';
 			require_once $base . 'class-settings-manager.php';
 			require_once $base . 'class-subscriber-manager.php';
 			require_once $base . 'class-product-integration.php';

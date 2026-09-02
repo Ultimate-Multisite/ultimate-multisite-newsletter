@@ -77,6 +77,7 @@ The checkbox only renders when global opt-in mode is set to "Requires Checkbox C
 - **`Subscriber_Manager`** — wraps `NewsletterSubscription::instance()->subscribe2()` and list APIs
 - **`Settings_Manager`** — registers settings section, renders list selector, persists choices
 - **`Product_Integration`** — adds Newsletter tab to product editor
+- **`Customer_Snapshot_Provider`** — supplies privacy-minimized customer context to the AI Newsletter check-in pilot
 - **`Newsletter_Optin_Field`** — `Base_Signup_Field` subclass for the checkout checkbox
 
 ### File Structure
@@ -86,6 +87,7 @@ ultimate-multisite-newsletter/
 ├── ultimate-multisite-newsletter.php   # Main plugin file
 ├── inc/
 │   ├── class-newsletter-main.php       # Main logic & hooks
+│   ├── class-customer-snapshot-provider.php # Allowlisted check-in context
 │   ├── class-subscriber-manager.php    # Newsletter API wrapper
 │   ├── class-settings-manager.php      # Settings registration
 │   ├── class-product-integration.php   # Product page extension
@@ -97,6 +99,20 @@ ultimate-multisite-newsletter/
 ├── AGENTS.md                           # Agent/AI development notes
 └── README.md                           # This file
 ```
+
+### AI check-in context
+
+AI Newsletter calls `Customer_Snapshot_Provider` directly so another filter
+cannot manufacture consent. The provider returns coarse plan, membership,
+payment-count, network-count, site-count, update, login, and 30-day usage
+signals. It excludes email, URLs, site content, IP addresses, payment amounts,
+and free-form customer data.
+
+Consent is true only when `um_newsletter_check_in_consent` is strictly `true`,
+`1`, or `'1'`, and `um_newsletter_check_in_consent_evidence` is an array with a
+past `recorded_at` timestamp plus a `source` of `direct_customer_request` or
+`verified_unchecked_opt_in`. The general newsletter checkbox is intentionally
+insufficient because it may have been preselected.
 
 ## Hooks Used
 
