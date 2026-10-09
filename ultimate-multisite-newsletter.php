@@ -96,19 +96,8 @@ class Ultimate_Multisite_Newsletter {
 	private function load_dependencies() {
 
 		// Skip plugin autoloader if Bedrock's root autoloader already loaded dependencies.
-		if (! class_exists('Ultimate_Multisite\Newsletter\Newsletter_Main', false) && file_exists(ULTIMATE_MULTISITE_NEWSLETTER_PLUGIN_DIR . 'vendor/autoload.php')) {
-			require_once ULTIMATE_MULTISITE_NEWSLETTER_PLUGIN_DIR . 'vendor/autoload.php';
-		}
-
-		// Fallback manual requires for environments without Composer autoload (e.g. fresh local dev clones).
-		$base = ULTIMATE_MULTISITE_NEWSLETTER_PLUGIN_DIR . 'inc/';
-
-		if (! class_exists('Ultimate_Multisite\Newsletter\Newsletter_Main', false)) {
-			require_once $base . 'class-newsletter-main.php';
-			require_once $base . 'class-settings-manager.php';
-			require_once $base . 'class-subscriber-manager.php';
-			require_once $base . 'class-product-integration.php';
-			require_once $base . 'checkout/class-newsletter-optin-field.php';
+		if (! class_exists('Ultimate_Multisite\Newsletter\Newsletter_Main')) {
+			require_once ULTIMATE_MULTISITE_NEWSLETTER_PLUGIN_DIR . 'vendor/autoload_packages.php';
 		}
 	}
 
